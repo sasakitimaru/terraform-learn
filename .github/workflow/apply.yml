@@ -1,0 +1,60 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/terraform_pike
+          aws-region: us-west-2
+
+      - name: Cache Terraform binary
+        id: cache-terraform
+        uses: actions/cache@v2
+        with:
+          path: ~/terraform
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/terraform-version.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      - name: Install Terraform
+        if: steps.cache-terraform.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/terraform
+          sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install -y terraform
+          terraform -version > ~/terraform/terraform-version.txt
+          cp $(which terraform) ~/terraform/
+
+      - name: Add Terraform to PATH
+        run: echo "$HOME/terraform" >> $GITHUB_PATH
+
+      - name: Run Pike Make using Docker
+        run: |
+          docker pull jameswoolfenden/pike
+          docker run --tty --volume ${{ github.workspace }}/deployment:/tf jameswoolfenden/pike make -d /tf
+
+      - name: Initialize Terraform
+        run: |
+          cd deployment/.pike
+          terraform init
+
+      - name: Apply Terraform
+        run: |
+          cd deployment/.pike
+          terraform apply -auto-approve
