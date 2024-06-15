@@ -58,16 +58,16 @@ jobs:
 
       - name: Run Pike Make using Docker
         run: |
-          pike make
+          pike make -d ${{ github.workspace }}/deployment
 
       - name: Initialize Terraform
         run: |
-          cd deployment/.pike
+          cd ${{ github.workspace }}/deployment/.pike
           terraform init
 
       - name: Apply Terraform
         run: |
-          cd deployment/.pike
+          cd ${{ github.workspace }}/deployment/.pike
           terraform apply -auto-approv
 
   # deploy:
