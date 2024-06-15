@@ -45,10 +45,20 @@ jobs:
       - name: Add Terraform to PATH
         run: echo "$HOME/terraform" >> $GITHUB_PATH
 
+      - name: Download Pike
+        run: |
+          curl -L -o pike.tar.gz https://github.com/JamesWoolfenden/pike/releases/download/v0.3.15/pike_0.3.15_linux_386.tar.gz
+
+      - name: Extract Pike
+        run: |
+          mkdir -p pike
+          tar -xzf pike.tar.gz -C pike
+          sudo mv pike/pike /usr/local/bin/pike
+          sudo chmod +x /usr/local/bin/pike
+
       - name: Run Pike Make using Docker
         run: |
-          docker pull jameswoolfenden/pike
-          docker run --tty --volume ${{ github.workspace }}/deployment:/tf jameswoolfenden/pike make -d /tf
+          pike make
 
       - name: Initialize Terraform
         run: |
