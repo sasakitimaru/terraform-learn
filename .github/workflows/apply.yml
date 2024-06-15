@@ -68,7 +68,7 @@ jobs:
       - name: Apply Terraform
         run: |
           cd ${{ github.workspace }}/deployment/.pike
-          terraform apply -auto-approv
+          terraform apply -auto-approve
 
   # deploy:
   #   runs-on: ubuntu-latest
