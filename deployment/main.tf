@@ -5,6 +5,13 @@ terraform {
       version = "~> 4.16"
     }
   }
+  backend "s3" {
+    bucket         = "terraform-example-bucket-20240615"
+    key            = "terraform.tfstate"
+    region         = "ap-northeast-1"
+    encrypt        = true
+    dynamodb_table = "terraform-example-terraform-locks"
+  }
 }
 
 
