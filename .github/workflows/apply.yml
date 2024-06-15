@@ -20,7 +20,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/terraform_learn
-          aws-region: ap-noutheast-1
+          aws-region: us-east-1
 
       - name: Cache Terraform binary
         id: cache-terraform
