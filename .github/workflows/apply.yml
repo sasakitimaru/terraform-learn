@@ -60,6 +60,16 @@ jobs:
         run: |
           pike make -d ${{ github.workspace }}/deployment
 
+      - name: Initialize Terraform
+        run: |
+          cd ${{ github.workspace }}/deployment/.pike
+          terraform init
+
+      - name: Apply Terraform
+        run: |
+          cd ${{ github.workspace }}/deployment/.pike
+          terraform apply -auto-approve
+
   # deploy:
   #   runs-on: ubuntu-latest
 
