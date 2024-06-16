@@ -77,6 +77,7 @@ resource "aws_iam_policy" "terraform-exec" {
           "ec2:DescribeSubnets",
           "ec2:DescribeVpcAttribute",
           "ec2:DescribeVpcs",
+          "ec2:DescribeVpcClassicLink",
           "ec2:DetachInternetGateway",
           "ec2:DisassociateRouteTable"
         ],

@@ -75,7 +75,6 @@ jobs:
           echo "TF_VAR_name_prefix=${{ vars.NAME_PREFIX }}" >> $GITHUB_ENV
 
       - name: deploy infrastructure
-        # if: github.event.head_commit.modified && contains(github.event.head_commit.modified, 'deployment/')
         run: |
           cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
           terraform init
