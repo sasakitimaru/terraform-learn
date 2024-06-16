@@ -27,7 +27,7 @@ jobs:
             echo "AWS_ACCOUNT_ID=${{ secrets.AWS_DEV_ACCOUNT_ID }}" >> $GITHUB_ENV
           fi
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials for IAM manager
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/terraform-iam-manager
@@ -62,6 +62,12 @@ jobs:
           cd ${{ github.workspace }}/deployment/init
           terraform init
           terraform apply -auto-approve
+
+      - name: Configure AWS credentials for deploy
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/terraform-exec
+          aws-region: us-east-1
 
       - name: deploy infrastructure
         # if: github.event.head_commit.modified && contains(github.event.head_commit.modified, 'deployment/')
