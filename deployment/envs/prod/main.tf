@@ -17,7 +17,7 @@ terraform {
 
 # ECR
 module "ecr" {
-  source = "./modules/ecr"
+  source = "../../modules/ecr"
 
   name_prefix = var.name_prefix
   region      = var.region
@@ -26,7 +26,7 @@ module "ecr" {
 
 # IAM
 module "iam" {
-  source = "./modules/iam"
+  source = "../../modules/iam"
 
   name_prefix = var.name_prefix
   region      = var.region
@@ -34,7 +34,7 @@ module "iam" {
 
 # Network
 module "network" {
-  source = "./modules/network"
+  source = "../../modules/network"
 
   name_prefix = var.name_prefix
   region      = var.region

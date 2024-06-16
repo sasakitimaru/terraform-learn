@@ -19,7 +19,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/terraform-learn
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/terraform-iam-manager
           aws-region: us-east-1
 
       - name: Cache Terraform binary
@@ -42,33 +42,39 @@ jobs:
           terraform -version > ~/terraform/terraform-version.txt
           cp $(which terraform) ~/terraform/
 
-      - name: Add Terraform to PATH
-        run: echo "$HOME/terraform" >> $GITHUB_PATH
+      - name: Set environment variables for Terraform
+        run: echo "TF_VAR_account_id=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
 
-      - name: Download Pike
+      - name: create role
         run: |
-          curl -L -o pike.tar.gz https://github.com/JamesWoolfenden/pike/releases/download/v0.3.15/pike_0.3.15_linux_386.tar.gz
-
-      - name: Extract Pike
-        run: |
-          mkdir -p pike
-          tar -xzf pike.tar.gz -C pike
-          sudo mv pike/pike /usr/local/bin/pike
-          sudo chmod +x /usr/local/bin/pike
-
-      - name: Run Pike Make using Docker
-        run: |
-          pike make -d ${{ github.workspace }}/deployment
-
-      - name: Initialize Terraform
-        run: |
-          cd ${{ github.workspace }}/deployment/.pike
+          cd ${{ github.workspace }}/deployment/init
           terraform init
-
-      - name: Apply Terraform
-        run: |
-          cd ${{ github.workspace }}/deployment/.pike
           terraform apply -auto-approve
+
+      # - name: Download Pike
+      #   run: |
+      #     curl -L -o pike.tar.gz https://github.com/JamesWoolfenden/pike/releases/download/v0.3.15/pike_0.3.15_linux_386.tar.gz
+
+      # - name: Extract Pike
+      #   run: |
+      #     mkdir -p pike
+      #     tar -xzf pike.tar.gz -C pike
+      #     sudo mv pike/pike /usr/local/bin/pike
+      #     sudo chmod +x /usr/local/bin/pike
+
+      # - name: Run Pike Make using Docker
+      #   run: |
+      #     pike make -d ${{ github.workspace }}/deployment
+
+      # - name: Initialize Terraform
+      #   run: |
+      #     cd ${{ github.workspace }}/deployment/.pike
+      #     terraform init
+
+      # - name: Apply Terraform
+      #   run: |
+      #     cd ${{ github.workspace }}/deployment/.pike
+      #     terraform apply -auto-approve
 
   # deploy:
   #   runs-on: ubuntu-latest
