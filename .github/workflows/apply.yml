@@ -19,10 +19,10 @@ jobs:
 
       - name: Set environment based on branch
         run: |
-          if [[ ${{ github.base_ref }} == "main" ]]; then
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
             echo "ENVIRONMENT=prod" >> $GITHUB_ENV
             echo "AWS_ACCOUNT_ID=${{ secrets.AWS_PROD_ACCOUNT_ID }}" >> $GITHUB_ENV
-          elif [[ ${{ github.base_ref }} == "develop" ]]; then
+          elif [[ "${GITHUB_REF##*/}" == "develop" ]]; then
             echo "ENVIRONMENT=dev" >> $GITHUB_ENV
             echo "AWS_ACCOUNT_ID=${{ secrets.AWS_DEV_ACCOUNT_ID }}" >> $GITHUB_ENV
           fi
