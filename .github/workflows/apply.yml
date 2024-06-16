@@ -71,8 +71,8 @@ jobs:
 
       - name: Set TF_VAR environment variables
         run: |
-          echo "TF_VAR_region=${{ variables.REGION }}" >> $GITHUB_ENV
-          echo "TF_VAR_name_prefix=${{ variables.NAME_PREFIX }}" >> $GITHUB_ENV
+          echo "TF_VAR_region=${{ var.REGION }}" >> $GITHUB_ENV
+          echo "TF_VAR_name_prefix=${{ var.NAME_PREFIX }}" >> $GITHUB_ENV
 
       - name: deploy infrastructure
         # if: github.event.head_commit.modified && contains(github.event.head_commit.modified, 'deployment/')
