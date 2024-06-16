@@ -46,6 +46,7 @@ jobs:
         run: echo "TF_VAR_account_id=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
 
       - name: create role
+        if: github.event.head_commit.modified && contains(github.event.head_commit.modified, 'deployment/init/')
         run: |
           cd ${{ github.workspace }}/deployment/init
           terraform init
