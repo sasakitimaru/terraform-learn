@@ -53,10 +53,9 @@ jobs:
           terraform -version > ~/terraform/terraform-version.txt
           cp $(which terraform) ~/terraform/
 
-      - name: Set environment variables for Terraform
-        run: echo "TF_VAR_account_id=${{ env.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
-
       - name: create role
+        env:
+          TF_VAR_account_id: ${{ env.AWS_ACCOUNT_ID }}
         run: |
           cd ${{ github.workspace }}/deployment/init
           terraform init
@@ -68,12 +67,10 @@ jobs:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/terraform-exec
           aws-region: us-east-1
 
-      - name: Set TF_VAR environment variables
-        run: |
-          echo "TF_VAR_region=${{ vars.REGION }}" >> $GITHUB_ENV
-          echo "TF_VAR_name_prefix=${{ vars.NAME_PREFIX }}" >> $GITHUB_ENV
-
       - name: deploy infrastructure
+        env:
+          TF_VAR_region: ${{ vars.REGION }}
+          TF_VAR_name_prefix: ${{ vars.NAME_PREFIX }}
         run: |
           cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
           terraform init
