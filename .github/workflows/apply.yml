@@ -58,11 +58,15 @@ jobs:
           terraform -version > ~/terraform/terraform-version.txt
           cp $(which terraform) ~/terraform/
 
-      - name: Check if deployment/init/** has changed
-        id: check_changes
+      - name: Check if deployment/init/** has changed in all new commits
         run: |
-          cd ${{ github.workspace }}/deployment/init
-          git diff --exit-code || echo "changes_in_deployment_init=true" >> $GITHUB_ENV
+          git fetch origin +refs/heads/${{ github.ref }}:refs/remotes/origin/${{ github.ref }}
+          commits=$(git rev-list origin/${{ github.ref }} ^${{ github.event.before }})
+          if git diff --name-only $commits | grep -q '^deployment/init/'; then
+            echo "changes_in_deployment_init=true" >> $GITHUB_ENV
+          else
+            echo "changes_in_deployment_init=false" >> $GITHUB_ENV
+          fi
 
       - name: create role
         if: env.changes_in_deployment_init == 'true'
