@@ -122,7 +122,6 @@ resource "aws_iam_policy" "terraform-exec" {
         ],
         "Resource" : "*"
       }
-      ## Add more policies here
     ]
   })
 }
