@@ -67,6 +67,7 @@ jobs:
         id: check_changes
         run: |
           BASE_BRANCH="origin/main"
+          git diff --name-only $BASE_BRANCH...HEAD
           if [[ "${GITHUB_REF##*/}" == "develop" ]]; then
             BASE_BRANCH="origin/develop"
           fi
