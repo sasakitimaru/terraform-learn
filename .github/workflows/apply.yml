@@ -22,7 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
       - name: Set environment based on branch
         run: |
@@ -60,19 +60,11 @@ jobs:
           terraform -version > ~/terraform/terraform-version.txt
           cp $(which terraform) ~/terraform/
 
-      - name: Fetch all branches
-        run: git fetch --all
-
-      - name: Check for changes in deployment/init
-        id: check_changes
+      - name: Check if there are changes in deployment/init
+        id: check-changes-in-deployment-init
         run: |
-          BASE_BRANCH="origin/main"
-          git diff --name-only $BASE_BRANCH...HEAD
-          if [[ "${GITHUB_REF##*/}" == "develop" ]]; then
-            BASE_BRANCH="origin/develop"
-          fi
-          echo "Comparing changes against $BASE_BRANCH"
-          if git diff --name-only $BASE_BRANCH...HEAD | grep -q '^deployment/init/'; then
+          cd ${{ github.workspace }}/deployment/init
+          if git diff --name-only HEAD^1 HEAD | grep -q '^deployment/init/'; then
             echo "changes_in_deployment_init=true" >> $GITHUB_ENV
           fi
 
