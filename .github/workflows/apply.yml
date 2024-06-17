@@ -16,6 +16,7 @@ jobs:
     env:
       ENVIRONMENT: null
       AWS_ACCOUNT_ID: null
+      changes_in_deployment_init: false
 
     steps:
       - name: Checkout repository
@@ -57,7 +58,14 @@ jobs:
           terraform -version > ~/terraform/terraform-version.txt
           cp $(which terraform) ~/terraform/
 
+      - name: Check if deployment/init/** has changed
+        id: check_changes
+        run: |
+          cd ${{ github.workspace }}/deployment/init
+          git diff --exit-code || echo "changes_in_deployment_init=true" >> $GITHUB_ENV
+
       - name: create role
+        if: env.changes_in_deployment_init == 'true'
         env:
           TF_VAR_account_id: ${{ env.AWS_ACCOUNT_ID }}
         run: |
