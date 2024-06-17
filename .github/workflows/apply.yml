@@ -34,14 +34,6 @@ jobs:
             echo "AWS_ACCOUNT_ID=${{ secrets.AWS_DEV_ACCOUNT_ID }}" >> $GITHUB_ENV
           fi
 
-      - name: Check for changes in deployment/init
-        id: check_changes
-        run: |
-          git fetch origin main:refs/remotes/origin/main
-          if git diff --name-only origin/main HEAD | grep -q '^deployment/init/'; then
-            echo "changes_in_deployment_init=true" >> $GITHUB_ENV
-          fi
-
       - name: Configure AWS credentials for IAM manager
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -67,6 +59,21 @@ jobs:
           sudo apt-get update && sudo apt-get install -y terraform
           terraform -version > ~/terraform/terraform-version.txt
           cp $(which terraform) ~/terraform/
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Check for changes in deployment/init
+        id: check_changes
+        run: |
+          BASE_BRANCH="origin/main"
+          if [[ "${GITHUB_REF##*/}" == "develop" ]]; then
+            BASE_BRANCH="origin/develop"
+          fi
+          echo "Comparing changes against $BASE_BRANCH"
+          if git diff --name-only $BASE_BRANCH...HEAD | grep -q '^deployment/init/'; then
+            echo "changes_in_deployment_init=true" >> $GITHUB_ENV
+          fi
 
       - name: Create role
         if: env.changes_in_deployment_init == 'true'
