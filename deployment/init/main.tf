@@ -119,7 +119,6 @@ resource "aws_iam_policy" "terraform-exec" {
           "s3:GetObject",
           "s3:ListBucket",
           "s3:PutObject"
-          // "s3:ListAllMyBuckets"
         ],
         "Resource" : "*"
       }
