@@ -1,4 +1,4 @@
-if git diff --name-only origin/main...HEAD | grep -q '^deployment/init/'; then
+if git diff --name-only HEAD^1 HEAD | grep -q '^deployment/init/'; then
   echo "Deployment files have changed"
   exit 0
 else
