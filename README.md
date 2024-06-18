@@ -1,1 +1,1 @@
-terraform cicd example
+terraform CI/CD example
