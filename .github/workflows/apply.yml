@@ -40,25 +40,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/terraform-iam-manager
           aws-region: ${{ vars.REGION }}
 
-      - name: Cache Terraform binary
-        id: cache-terraform
-        uses: actions/cache@v2
-        with:
-          path: ~/terraform
-          key: ${{ runner.os }}-terraform-${{ hashFiles('**/terraform-version.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-terraform-
-
-      - name: Install Terraform
-        if: steps.cache-terraform.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ~/terraform
-          sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
-          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-          sudo apt-get update && sudo apt-get install -y terraform
-          terraform -version > ~/terraform/terraform-version.txt
-          cp $(which terraform) ~/terraform/
+      - uses: hashicorp/setup-terraform@v3
 
       - name: Check if there are changes in deployment/init
         id: check-changes-in-deployment-init

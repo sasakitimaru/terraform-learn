@@ -1,0 +1,57 @@
+name: terraform plan
+
+on:
+  pull_request_target:
+    branches:
+      - main
+      - develop
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      ENVIRONMENT: null
+      AWS_ACCOUNT_ID: null
+
+    steps:
+      - uses: actions/github-script@v6
+        id: pr
+        with:
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.get({
+              ...context.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            return pullRequest
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{fromJSON(steps.pr.outputs.result).merge_commit_sha}}
+
+      - name: Set environment based on branch
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "ENVIRONMENT=prod" >> $GITHUB_ENV
+            echo "AWS_ACCOUNT_ID=${{ secrets.AWS_PROD_ACCOUNT_ID }}" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "develop" ]]; then
+            echo "ENVIRONMENT=dev" >> $GITHUB_ENV
+            echo "AWS_ACCOUNT_ID=${{ secrets.AWS_DEV_ACCOUNT_ID }}" >> $GITHUB_ENV
+          fi
+
+      - name: Configure AWS credentials for IAM manager
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/terraform-exec
+          aws-region: ${{ vars.REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Plan
+        run: |
+          cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
+          terraform init
+          terraform plan
