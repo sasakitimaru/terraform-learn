@@ -1,22 +1,23 @@
-name: Deploy Infrastructure
+# .github/workflows/terraform-plan.yml
+name: Terraform Plan
 
 on:
-  push:
+  pull_request:
     branches:
       - main
       - develop
 
 jobs:
-  deploy:
+  plan:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+      pull-requests: write
 
     env:
       ENVIRONMENT: null
       AWS_ACCOUNT_ID: null
-      changes_in_deployment_init: false
 
     steps:
       - name: Checkout repository
@@ -34,39 +35,17 @@ jobs:
             echo "AWS_ACCOUNT_ID=${{ secrets.AWS_DEV_ACCOUNT_ID }}" >> $GITHUB_ENV
           fi
 
-      - name: Configure AWS credentials for IAM manager
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/terraform-iam-manager
-          aws-region: ${{ vars.REGION }}
-
-      - name: Install Terraform
-        uses: ./.github/workflows/install-terraform.yml
-
-      - name: Check if there are changes in deployment/init
-        id: check-changes-in-deployment-init
-        run: |
-          cd ${{ github.workspace }}/deployment/init
-          if git diff --name-only HEAD^1 HEAD | grep -q '^deployment/init/'; then
-            echo "changes_in_deployment_init=true" >> $GITHUB_ENV
-          fi
-
-      - name: Create role
-        if: env.changes_in_deployment_init == 'true'
-        env:
-          TF_VAR_account_id: ${{ env.AWS_ACCOUNT_ID }}
-        run: |
-          cd ${{ github.workspace }}/deployment/init
-          terraform init
-          terraform apply -auto-approve
-
-      - name: Configure AWS credentials for deploy
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/terraform-exec
           aws-region: ${{ vars.REGION }}
 
-      - name: Deploy infrastructure
+      - name: Install Terraform
+        uses: ./.github/workflows/install-terraform.yml
+
+      - name: Run Terraform Plan
+        id: plan
         env:
           TF_VAR_account_id: ${{ env.AWS_ACCOUNT_ID }}
           TF_VAR_region: ${{ vars.REGION }}
@@ -74,4 +53,20 @@ jobs:
         run: |
           cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
           terraform init
-          terraform apply -auto-approve
+          terraform plan -out=tfplan > plan.txt
+          cat plan.txt
+
+      - name: Comment PR with Terraform Plan
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('deployment/envs/${{ env.ENVIRONMENT }}/plan.txt', 'utf8');
+            const comment = `## Terraform Plan Result\n\`\`\`\n${plan}\n\`\`\``;
+            const context = github.context;
+            const pullRequestNumber = context.payload.pull_request.number;
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: pullRequestNumber,
+              body: comment,
+            });
