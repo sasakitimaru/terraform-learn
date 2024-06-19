@@ -51,7 +51,19 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
 
-      - name: Plan
+      - name: Terraform Format
+        id: fmt
+        run: |
+          cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
+          terraform fmt -check
+
+      - name: Terraform Init
+        id: init
+        run: |
+          cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
+          terraform init
+
+      - name: Terraform Plan
         id: plan
         env:
           TF_VAR_account_id: ${{ env.AWS_ACCOUNT_ID }}
@@ -59,7 +71,6 @@ jobs:
           TF_VAR_name_prefix: ${{ vars.NAME_PREFIX }}
         run: |
           cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
-          terraform init
           terraform plan -no-color
 
       - name: Post plan result as PR comment
@@ -73,3 +84,17 @@ jobs:
               body: '```' + '\n' + context.payload.workflow_run.jobs.plan.outputs.plan + '\n' + '```',
             });
             return comment
+
+            - name: Comment PR
+            uses: actions/github-script@v3
+            with:
+              github-token: ${{ secrets.GITHUB_TOKEN }}
+              script: |
+                const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outputs.stdout }}\`
+                #### Terraform Plan 📖\`${{ steps.plan.outputs.stdout }}\``;
+                github.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `## Terraform checks for '${{ env.ENVIRONMENT }}'\n` + output
+                })
