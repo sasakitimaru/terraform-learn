@@ -12,6 +12,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      pull-requests: write
 
     env:
       ENVIRONMENT: null
@@ -51,7 +52,23 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
 
       - name: Plan
+        env:
+          TF_VAR_account_id: ${{ env.AWS_ACCOUNT_ID }}
+          TF_VAR_region: ${{ vars.REGION }}
+          TF_VAR_name_prefix: ${{ vars.NAME_PREFIX }}
         run: |
           cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
           terraform init
-          terraform plan
+          terraform plan -no-color -out=plan.txt
+
+      - name: Post plan result as PR comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('plan.txt', 'utf8');
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `### Terraform Plan Results\n\`\`\`\n${plan}\n\`\`\``
+            });
