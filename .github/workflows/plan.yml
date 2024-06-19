@@ -59,7 +59,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/deployment/envs/${{ env.ENVIRONMENT }}
           terraform init
-          terraform plan -no-color -out=plan.txt
+          terraform plan -no-color | tee plan.txt
 
       - name: Post plan result as PR comment
         uses: actions/github-script@v6
