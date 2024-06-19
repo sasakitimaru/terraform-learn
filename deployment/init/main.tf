@@ -27,8 +27,13 @@ resource "aws_iam_role" "terraform-exec" {
       "Action" : "sts:AssumeRoleWithWebIdentity",
       "Condition" : {
         "StringEquals" : {
-          "token.actions.githubusercontent.com:sub" : "repo:sasakitimaru/terraform-learn:ref:refs/heads/main",
           "token.actions.githubusercontent.com:aud" : "sts.amazonaws.com"
+        },
+        "StringLike" : {
+          "token.actions.githubusercontent.com:sub" : [
+            "repo:sasakitimaru/terraform-learn:event_name:pull_request_target:base_ref:main:*",
+            "repo:sasakitimaru/terraform-learn:event_name:push:base_ref::ref:refs/heads/main"
+          ]
         }
       }
     }]
@@ -79,8 +84,18 @@ resource "aws_iam_policy" "terraform-exec" {
           "ec2:DescribeVpcs",
           "ec2:DescribeVpcClassicLink",
           "ec2:DescribeVpcClassicLinkDnsSupport",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSecurityGroupReferences",
           "ec2:DetachInternetGateway",
-          "ec2:DisassociateRouteTable"
+          "ec2:DisassociateRouteTable",
+          "ec2:AuthorizeSecurityGroupEgress",
+          "ec2:AuthorizeSecurityGroupIngress",
+          "ec2:CreateSecurityGroup",
+          "ec2:DeleteSecurityGroup",
+          "ec2:RevokeSecurityGroupEgress",
+          "ec2:RevokeSecurityGroupIngress",
+          "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
+          "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
         ],
         "Resource" : "*"
       },
