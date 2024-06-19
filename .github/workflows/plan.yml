@@ -78,8 +78,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outputs.stdout }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outputs.stdout }}\``;
+            const output = `### Terraform Plan 📖\n${{ steps.plan.outputs.stdout }}`;
             github.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
