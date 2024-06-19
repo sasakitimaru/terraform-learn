@@ -39,3 +39,14 @@ module "network" {
   name_prefix = var.name_prefix
   region      = var.region
 }
+
+# Security Group
+module "sg" {
+  source = "../../modules/sg"
+
+  name_prefix = var.name_prefix
+  region      = var.region
+
+  vpc_id = module.network.vpc_id
+  # sg_ingress_ip_cidr = var.sg_ingress_ip_cidr
+}
