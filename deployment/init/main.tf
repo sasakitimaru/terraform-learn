@@ -85,6 +85,7 @@ resource "aws_iam_policy" "terraform-exec" {
           "ec2:DescribeVpcClassicLink",
           "ec2:DescribeVpcClassicLinkDnsSupport",
           "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSecurityGroupRules",
           "ec2:DescribeSecurityGroupReferences",
           "ec2:DetachInternetGateway",
           "ec2:DisassociateRouteTable",
